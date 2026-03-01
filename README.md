@@ -114,8 +114,8 @@ assets/
 | 1 | Scaffold — Expo setup, theme, shared UI | ✅ Complete |
 | 2 | Authentication — login, register, session | ✅ Complete |
 | 3 | Donor Dashboard — wallet balance, top-up | ✅ Complete |
-| 4 | QR Scanner & short code lookup | ⬜ Next |
-| 5 | Recipient public profile | ⬜ |
+| 4 | QR Scanner & short code lookup | ✅ Complete |
+| 5 | Recipient public profile | ⬜ Next |
 | 6 | Donation flow | ⬜ |
 | 7 | Donation history | ⬜ |
 | 8 | Spend breakdown | ⬜ |

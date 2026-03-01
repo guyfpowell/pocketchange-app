@@ -12,7 +12,7 @@ API: PocketChange website backend (shared, no duplication of logic)
 | 1 | Scaffold | ✅ Complete |
 | 2 | Authentication | ✅ Complete |
 | 3 | Donor Dashboard (Wallet) | ✅ Complete |
-| 4 | QR Scanner & Short Code Lookup | ⬜ Pending |
+| 4 | QR Scanner & Short Code Lookup | ✅ Complete |
 | 5 | Recipient Profile | ⬜ Pending |
 | 6 | Donation Flow | ⬜ Pending |
 | 7 | Donation History | ⬜ Pending |
@@ -298,42 +298,19 @@ pocketchange-app/
 
 ---
 
-### Phase 4 — QR Scanner & Short Code Lookup
+### Phase 4 — QR Scanner & Short Code Lookup ✅ COMPLETE
 
 **Goal:** identify a homeless recipient by scanning their badge QR or typing their 6-digit code.
 
-**Screen:** `(donor)/scan.tsx`
-
-Two-tab layout:
-1. **Scan** — live camera QR scanner
-2. **Enter Code** — short code text input formatted as `XXX-XXX`
-
-**Flow:**
-```
-Scan QR / Enter code
-      ↓
-GET /recipients/lookup?token=<qrToken>
-  OR
-GET /recipients/by-shortcode/<code>
-      ↓
-Navigate to /recipient/[id]
-```
-
-**Components:**
-- `expo-camera` / `expo-barcode-scanner` for QR
-- Custom `ShortCodeInput` component (3+3 digit groups, auto-advance)
-
-**Services:** `recipient.service.ts`
-```ts
-lookupByToken(token: string): Promise<RecipientPublicProfile>
-lookupByShortCode(code: string): Promise<RecipientPublicProfile>
-```
+**Delivered:**
+- `src/services/recipient.service.ts` — `lookupByToken(token)`, `lookupByShortCode(code)` (strips dash before sending)
+- `src/components/scan/QRScanner.tsx` — `expo-camera` `CameraView` with `useCameraPermissions`; permission request UI; debounce ref prevents duplicate scans; blue corner-marker viewfinder overlay; processing spinner overlay; resets scan lock when `active` prop flips back to true
+- `src/components/scan/ShortCodeInput.tsx` — single `TextInput` (hidden, number-pad) drives a styled display `Pressable` showing live `XXX-XXX` formatting; blinking cursor indicator; submit disabled until 6 digits complete; error display
+- `app/(donor)/scan.tsx` — tab switcher (Scan QR / Enter Code) with pill style; state machine (`idle → identifying → error`); 404 vs generic error handling; "Try Again" resets to idle; navigates to `/recipient/:id` on success; tab switch resets error state
 
 **Backend endpoints used:**
-- `GET /recipients/lookup?token=` — already exists (from website scan page)
-- `GET /recipients/by-shortcode/:code` — confirm if exists, otherwise request addition
-
-**Deliverable:** Donor can find a recipient by either method.
+- `GET /recipients/lookup?token=` — existing endpoint
+- `GET /recipients/by-shortcode/:code` — new endpoint (must be added to backend if not present)
 
 ---
 
