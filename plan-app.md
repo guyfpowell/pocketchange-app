@@ -5,6 +5,20 @@ Platform: React Native (Expo) / TypeScript
 Audience: Donors only
 API: PocketChange website backend (shared, no duplication of logic)
 
+## Progress
+
+| Phase | Title | Status |
+|-------|-------|--------|
+| 1 | Scaffold | ✅ Complete |
+| 2 | Authentication | ⬜ Pending |
+| 3 | Donor Dashboard (Wallet) | ⬜ Pending |
+| 4 | QR Scanner & Short Code Lookup | ⬜ Pending |
+| 5 | Recipient Profile | ⬜ Pending |
+| 6 | Donation Flow | ⬜ Pending |
+| 7 | Donation History | ⬜ Pending |
+| 8 | Spend Breakdown | ⬜ Pending |
+| 9 | Profile & Account Management | ⬜ Pending |
+
 ---
 
 ## 1. Context & Constraints
@@ -212,21 +226,28 @@ pocketchange-app/
 
 ---
 
-### Phase 1 — Scaffold
+### Phase 1 — Scaffold ✅ COMPLETE
 
 **Goal:** runnable app shell, no features.
 
-- Init Expo with TypeScript template: `npx create-expo-app pocketchange-app --template blank-typescript`
-- Install core dependencies (see §10)
-- Configure Expo Router
-- Set up `app.json` (name, bundle ID, icon, splash)
-- Copy app icon from website repo (remove red border / use clean version)
-- Implement theme constants
-- Implement shared UI primitives: `Button`, `Card`, `Input`, `Spinner`
-- Configure environment: `EXPO_PUBLIC_API_URL`
-- Load Poppins font via `expo-font` or `@expo-google-fonts/poppins`
-
-**Deliverable:** App launches, shows placeholder screen with logo.
+**Delivered:**
+- Expo 52 + Expo Router 4 + TypeScript project scaffolded manually
+- All core dependencies installed (`package.json` + `.npmrc`)
+- `app.json` configured: name, bundle IDs, icon, splash (teal bg), camera permission
+- App icon copied from website repo (`assets/icon.png`)
+- `babel.config.js` + `tsconfig.json` with `@/` path alias pointing to `src/`
+- `metro.config.js` for Expo Metro
+- `.env.example` with `EXPO_PUBLIC_API_URL`
+- Theme constants: `src/theme/index.ts` (colours, spacing, radius, shadows, font tokens)
+- Shared types: `src/types/index.ts`
+- Shared UI components: `Button`, `Card`, `Input`, `Spinner`, `Badge`, `Logo`
+- API client stub: `src/lib/api.ts`
+- Root layout: Poppins font loading + SplashScreen guard + `StatusBar`
+- Full Expo Router route tree with placeholder screens for all 9 phases:
+  - `(auth)/sign-in`, `(auth)/register`
+  - `(donor)/index`, `(donor)/scan`, `(donor)/history`, `(donor)/profile`
+  - `recipient/[id]`, `donation/[id]`
+- Bottom tab navigator wired up with Ionicons
 
 ---
 

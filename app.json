@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "Pocket Change",
+    "slug": "pocketchange-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F3F3F3"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "org.pocketchange.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#1B5E72"
+      },
+      "package": "org.pocketchange.app"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/icon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "PocketChange needs camera access to scan recipient QR codes."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "scheme": "pocketchange"
+  }
+}
