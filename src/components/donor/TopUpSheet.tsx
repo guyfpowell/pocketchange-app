@@ -2,22 +2,56 @@ import BottomSheet, {
   BottomSheetView,
   BottomSheetBackdrop,
 } from '@gorhom/bottom-sheet';
-import { useStripe } from '@stripe/stripe-react-native';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { features } from '@/config/features';
 import { useCreateTopUp, useInvalidateWallet } from '@/hooks/useWallet';
 import { colors, font, fontSize, spacing, tracking } from '@/theme';
 
+// useStripe is only called inside StripeTopUpContent, which is only rendered
+// when features.stripePayments is true (and StripeProvider is in the tree).
+// The import itself is safe in Expo Go — no native code runs at import time.
+import { useStripe } from '@stripe/stripe-react-native';
+
 interface TopUpSheetProps {
-  /** Call with a ref so the parent can open/close */
   sheetRef: React.RefObject<BottomSheet>;
 }
 
 type Step = 'amount' | 'processing' | 'success' | 'error';
 
+// ─── Shared backdrop ────────────────────────────────────────────────────────
+
+function useSharedBackdrop() {
+  return useCallback(
+    (props: Parameters<typeof BottomSheetBackdrop>[0]) => (
+      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
+    ),
+    []
+  );
+}
+
+// ─── Public export ──────────────────────────────────────────────────────────
+
+/**
+ * Routes to the Stripe-powered top-up or an informational placeholder
+ * based on the stripePayments feature flag.
+ */
 export function TopUpSheet({ sheetRef }: TopUpSheetProps) {
+  return features.stripePayments
+    ? <StripeTopUpContent sheetRef={sheetRef} />
+    : <TopUpUnavailable sheetRef={sheetRef} />;
+}
+
+// ─── Stripe-powered top-up ──────────────────────────────────────────────────
+
+/**
+ * Full top-up implementation using Stripe's native payment sheet.
+ * Only rendered when features.stripePayments is true and StripeProvider
+ * is present in the tree.
+ */
+function StripeTopUpContent({ sheetRef }: TopUpSheetProps) {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const createTopUp = useCreateTopUp();
   const invalidateWallet = useInvalidateWallet();
@@ -27,12 +61,7 @@ export function TopUpSheet({ sheetRef }: TopUpSheetProps) {
   const [step, setStep] = useState<Step>('amount');
   const [errorMsg, setErrorMsg] = useState('');
 
-  const renderBackdrop = useCallback(
-    (props: Parameters<typeof BottomSheetBackdrop>[0]) => (
-      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
-    ),
-    []
-  );
+  const renderBackdrop = useSharedBackdrop();
 
   function reset() {
     setAmount('');
@@ -44,7 +73,6 @@ export function TopUpSheet({ sheetRef }: TopUpSheetProps) {
 
   function close() {
     sheetRef.current?.close();
-    // Small delay before resetting so the sheet animation completes
     setTimeout(reset, 300);
   }
 
@@ -58,37 +86,30 @@ export function TopUpSheet({ sheetRef }: TopUpSheetProps) {
     setStep('processing');
 
     try {
-      // 1. Create the PaymentIntent on the server
       const { clientSecret } = await createTopUp.mutateAsync(pence);
 
-      // 2. Initialise the Stripe PaymentSheet
       const { error: initError } = await initPaymentSheet({
         paymentIntentClientSecret: clientSecret,
         merchantDisplayName: 'PocketChange',
         style: 'alwaysLight',
       });
-
       if (initError) throw new Error(initError.message);
 
-      // 3. Present the native Stripe payment UI
       const { error: presentError } = await presentPaymentSheet();
-
       if (presentError) {
         if (presentError.code === 'Canceled') {
-          // User dismissed — go back to amount step
           setStep('amount');
           return;
         }
         throw new Error(presentError.message);
       }
 
-      // 4. Success — refresh wallet balance
       await invalidateWallet();
       setStep('success');
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : 'Payment failed. Please try again.';
-      setErrorMsg(msg);
+      setErrorMsg(
+        err instanceof Error ? err.message : 'Payment failed. Please try again.'
+      );
       setStep('error');
     }
   }
@@ -109,27 +130,18 @@ export function TopUpSheet({ sheetRef }: TopUpSheetProps) {
           <>
             <Text style={styles.heading}>TOP UP WALLET</Text>
             <Text style={styles.sub}>Add funds to donate to recipients.</Text>
-
             <Input
               label="Amount (£)"
               value={amount}
-              onChangeText={(t) => {
-                setAmount(t);
-                setAmountError(null);
-              }}
+              onChangeText={(t) => { setAmount(t); setAmountError(null); }}
               error={amountError ?? undefined}
               placeholder="e.g. 10.00"
               keyboardType="decimal-pad"
               returnKeyType="done"
               autoFocus
             />
-
             <View style={styles.btnRow}>
-              <Button
-                label="Continue"
-                onPress={handleContinue}
-                loading={false}
-              />
+              <Button label="Continue" onPress={handleContinue} loading={false} />
               <Button label="Cancel" variant="outline" onPress={close} />
             </View>
           </>
@@ -167,13 +179,53 @@ export function TopUpSheet({ sheetRef }: TopUpSheetProps) {
   );
 }
 
+// ─── Expo Go placeholder ─────────────────────────────────────────────────────
+
+/**
+ * Shown in Expo Go where the Stripe native module is unavailable.
+ * Renders the same bottom sheet shell so the parent's sheetRef still works.
+ */
+function TopUpUnavailable({ sheetRef }: TopUpSheetProps) {
+  const renderBackdrop = useSharedBackdrop();
+
+  return (
+    <BottomSheet
+      ref={sheetRef}
+      index={-1}
+      snapPoints={['42%']}
+      enablePanDownToClose
+      backdropComponent={renderBackdrop}
+      handleIndicatorStyle={styles.handle}
+      backgroundStyle={styles.background}
+    >
+      <BottomSheetView style={styles.content}>
+        <Text style={styles.heading}>TOP UP WALLET</Text>
+        <Text style={styles.unavailableTitle}>Not available in Expo Go</Text>
+        <Text style={styles.sub}>
+          Wallet top-up uses Stripe's native payment sheet, which requires a
+          custom dev build.{'\n\n'}
+          Set{' '}
+          <Text style={styles.code}>EXPO_PUBLIC_STRIPE_ENABLED=true</Text>
+          {' '}in .env.local and run{' '}
+          <Text style={styles.code}>npm run ios</Text>
+          {' '}or{' '}
+          <Text style={styles.code}>npm run android</Text>.
+        </Text>
+        <Button
+          label="Close"
+          variant="outline"
+          onPress={() => sheetRef.current?.close()}
+        />
+      </BottomSheetView>
+    </BottomSheet>
+  );
+}
+
+// ─── Styles ──────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  handle: {
-    backgroundColor: colors.border,
-  },
-  background: {
-    backgroundColor: colors.white,
-  },
+  handle: { backgroundColor: colors.border },
+  background: { backgroundColor: colors.white },
   content: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
@@ -190,6 +242,17 @@ const styles = StyleSheet.create({
     fontFamily: font.regular,
     fontSize: fontSize.sm,
     color: colors.textMuted,
+    lineHeight: 20,
+  },
+  unavailableTitle: {
+    fontFamily: font.bold,
+    fontSize: fontSize.base,
+    color: colors.textMuted,
+  },
+  code: {
+    fontFamily: 'Courier',
+    fontSize: fontSize.xs,
+    color: colors.teal,
   },
   btnRow: {
     flexDirection: 'row',
@@ -209,10 +272,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconText: {
-    fontSize: 28,
-    color: colors.success,
-  },
+  iconText: { fontSize: 28, color: colors.success },
   successHeading: {
     fontFamily: font.bold,
     fontSize: fontSize.lg,
@@ -229,7 +289,5 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textAlign: 'center',
   },
-  doneBtn: {
-    minWidth: 120,
-  },
+  doneBtn: { minWidth: 120 },
 });

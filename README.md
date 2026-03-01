@@ -52,9 +52,24 @@ cp .env.example .env.local
 ```
 EXPO_PUBLIC_API_URL=http://localhost:4000/api
 EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
+
+# Feature flags — set to true only in a custom dev build
+EXPO_PUBLIC_STRIPE_ENABLED=false
 ```
 
-> **Note:** This app uses `@stripe/stripe-react-native` and `expo-camera`, which require native modules. It will **not** run in Expo Go — you need a [custom development build](https://docs.expo.dev/develop/development-builds/introduction/).
+### Expo Go vs custom build
+
+Most of the app runs in **Expo Go** out of the box. The one exception is wallet top-up, which uses `@stripe/stripe-react-native` (a native module not bundled with Expo Go).
+
+| Feature | Expo Go | Custom build |
+|---------|---------|--------------|
+| Sign in / register | ✅ | ✅ |
+| QR scanner | ✅ | ✅ |
+| Recipient profile + donate | ✅ | ✅ |
+| Donation history + spend breakdown | ✅ | ✅ |
+| Wallet top-up (Stripe) | ℹ️ placeholder shown | ✅ set `EXPO_PUBLIC_STRIPE_ENABLED=true` |
+
+To build a custom dev client: see the [Expo dev builds guide](https://docs.expo.dev/develop/development-builds/introduction/).
 
 ### Run
 

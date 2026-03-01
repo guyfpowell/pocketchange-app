@@ -10,9 +10,9 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
-import { StripeProvider } from '@stripe/stripe-react-native';
 import { colors } from '@/theme';
 import { QueryProvider } from '@/providers/QueryProvider';
+import { StripeWrapper } from '@/providers/StripeWrapper';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -35,10 +35,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StripeProvider
-        publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''}
-        merchantIdentifier="merchant.org.pocketchange.app"
-      >
+      <StripeWrapper>
         <QueryProvider>
           <BottomSheetModalProvider>
             <StatusBar style="dark" backgroundColor={colors.bg} />
@@ -51,7 +48,7 @@ export default function RootLayout() {
             </Stack>
           </BottomSheetModalProvider>
         </QueryProvider>
-      </StripeProvider>
+      </StripeWrapper>
     </GestureHandlerRootView>
   );
 }
