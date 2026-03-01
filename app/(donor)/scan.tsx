@@ -35,7 +35,7 @@ export default function ScanScreen() {
     setErrorMsg('');
     try {
       const recipient = await recipientService.lookupByToken(token);
-      router.push(`/recipient/${recipient.id}`);
+      router.push({ pathname: '/recipient/[id]', params: { id: recipient.id, token } });
       // Reset after a short delay so the scanner is ready if the user comes back
       setTimeout(() => setScanState('idle'), 500);
     } catch (err) {
@@ -49,7 +49,7 @@ export default function ScanScreen() {
     setErrorMsg('');
     try {
       const recipient = await recipientService.lookupByShortCode(code);
-      router.push(`/recipient/${recipient.id}`);
+      router.push({ pathname: '/recipient/[id]', params: { id: recipient.id } });
       setTimeout(() => setScanState('idle'), 500);
     } catch (err) {
       setErrorMsg(extractError(err));

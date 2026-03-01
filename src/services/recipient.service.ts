@@ -1,4 +1,5 @@
 import api from '@/lib/api';
+import type { RecipientPublicProfile } from '@/types';
 
 export interface RecipientLookup {
   id: string;
@@ -24,6 +25,14 @@ export const recipientService = {
     const clean = code.replace(/-/g, '');
     const { data } = await api.get<RecipientLookup>(
       `/recipients/by-shortcode/${clean}`
+    );
+    return data;
+  },
+
+  /** Fetch the anonymised public profile for the recipient profile screen. */
+  async getPublicProfile(id: string): Promise<RecipientPublicProfile> {
+    const { data } = await api.get<RecipientPublicProfile>(
+      `/recipients/${id}/public-profile`
     );
     return data;
   },
