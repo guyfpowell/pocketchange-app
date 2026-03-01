@@ -16,7 +16,7 @@ import { colors, font, fontSize, spacing, tracking } from '@/theme';
 import { useStripe } from '@stripe/stripe-react-native';
 
 interface TopUpSheetProps {
-  sheetRef: React.RefObject<BottomSheet>;
+  sheetRef: React.RefObject<BottomSheet | null>;
 }
 
 type Step = 'amount' | 'processing' | 'success' | 'error';

@@ -11,7 +11,7 @@ export function useLogin() {
     mutationFn: (input: LoginInput) => authService.login(input),
     onSuccess: ({ user, tokens }) => {
       setAuth(user, tokens.accessToken, tokens.refreshToken);
-      router.replace('/(donor)/');
+      router.replace('/(donor)');
     },
   });
 }

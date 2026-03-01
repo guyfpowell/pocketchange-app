@@ -15,7 +15,7 @@ export default function Root() {
   }
 
   if (accessToken) {
-    return <Redirect href="/(donor)/" />;
+    return <Redirect href="/(donor)" />;
   }
 
   return <Redirect href="/(auth)/sign-in" />;

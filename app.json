@@ -43,7 +43,8 @@
           "merchantIdentifier": "merchant.org.pocketchange.app",
           "enableGooglePay": false
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

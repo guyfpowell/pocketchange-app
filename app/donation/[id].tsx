@@ -33,7 +33,7 @@ export default function DonationScreen() {
         <NavBar onBack={() => router.back()} />
         <View style={styles.centred}>
           <Text style={styles.errorText}>Could not load donation details.</Text>
-          <Button label="Retry" onPress={refetch} />
+          <Button label="Retry" onPress={() => { refetch(); }} />
         </View>
       </SafeAreaView>
     );

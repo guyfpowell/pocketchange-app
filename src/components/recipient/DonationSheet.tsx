@@ -14,7 +14,7 @@ import { colors, font, fontSize, radius, spacing } from '@/theme';
 type SheetState = 'amount' | 'confirm' | 'processing' | 'success' | 'error';
 
 interface DonationSheetProps {
-  sheetRef: React.RefObject<BottomSheet>;
+  sheetRef: React.RefObject<BottomSheet | null>;
   recipientId: string;
   /** Raw QR token, present when the donor arrived via camera scan. */
   token?: string;
@@ -81,7 +81,7 @@ export function DonationSheet({
   }
 
   const renderBackdrop = useCallback(
-    (props: object) => (
+    (props: Parameters<typeof BottomSheetBackdrop>[0]) => (
       <BottomSheetBackdrop
         {...props}
         disappearsOnIndex={-1}
