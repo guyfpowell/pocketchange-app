@@ -1,7 +1,15 @@
 import api from '@/lib/api';
+import type { DonationHistoryItem } from '@/types';
 
 export interface DonationResult {
   donationId: string;
+}
+
+export interface DonationHistoryResponse {
+  donations: DonationHistoryItem[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 export const donationService = {
@@ -32,6 +40,20 @@ export const donationService = {
     const { data } = await api.post<DonationResult>(
       `/recipients/${recipientId}/donate`,
       { amount: amountPence }
+    );
+    return data;
+  },
+
+  /**
+   * Fetch paginated donation history for the signed-in donor.
+   * Backend endpoint: GET /users/me/donations?page=&limit=
+   */
+  async getDonationHistory(
+    page = 1,
+    limit = 20
+  ): Promise<DonationHistoryResponse> {
+    const { data } = await api.get<DonationHistoryResponse>(
+      `/users/me/donations?page=${page}&limit=${limit}`
     );
     return data;
   },

@@ -117,8 +117,8 @@ assets/
 | 4 | QR Scanner & short code lookup | ✅ Complete |
 | 5 | Recipient public profile | ✅ Complete |
 | 6 | Donation flow | ✅ Complete |
-| 7 | Donation history | ⬜ Next |
-| 8 | Spend breakdown | ⬜ |
+| 7 | Donation history | ✅ Complete |
+| 8 | Spend breakdown | ⬜ Next |
 | 9 | Profile & account management | ⬜ |
 
 See [plan-app.md](./plan-app.md) for the full implementation plan.

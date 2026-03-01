@@ -15,7 +15,7 @@ API: PocketChange website backend (shared, no duplication of logic)
 | 4 | QR Scanner & Short Code Lookup | ✅ Complete |
 | 5 | Recipient Profile | ✅ Complete |
 | 6 | Donation Flow | ✅ Complete |
-| 7 | Donation History | ⬜ Pending |
+| 7 | Donation History | ✅ Complete |
 | 8 | Spend Breakdown | ⬜ Pending |
 | 9 | Profile & Account Management | ⬜ Pending |
 
