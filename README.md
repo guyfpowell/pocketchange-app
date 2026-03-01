@@ -109,8 +109,8 @@ assets/
 | Phase | Feature | Status |
 |-------|---------|--------|
 | 1 | Scaffold — Expo setup, theme, shared UI | ✅ Complete |
-| 2 | Authentication — login, register, session | ⬜ Next |
-| 3 | Donor Dashboard — wallet balance, top-up | ⬜ |
+| 2 | Authentication — login, register, session | ✅ Complete |
+| 3 | Donor Dashboard — wallet balance, top-up | ⬜ Next |
 | 4 | QR Scanner & short code lookup | ⬜ |
 | 5 | Recipient public profile | ⬜ |
 | 6 | Donation flow | ⬜ |

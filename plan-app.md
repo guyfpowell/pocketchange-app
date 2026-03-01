@@ -10,7 +10,7 @@ API: PocketChange website backend (shared, no duplication of logic)
 | Phase | Title | Status |
 |-------|-------|--------|
 | 1 | Scaffold | ✅ Complete |
-| 2 | Authentication | ⬜ Pending |
+| 2 | Authentication | ✅ Complete |
 | 3 | Donor Dashboard (Wallet) | ⬜ Pending |
 | 4 | QR Scanner & Short Code Lookup | ⬜ Pending |
 | 5 | Recipient Profile | ⬜ Pending |
@@ -251,44 +251,26 @@ pocketchange-app/
 
 ---
 
-### Phase 2 — Authentication
+### Phase 2 — Authentication ✅ COMPLETE
 
 **Goal:** full login/register/session persistence.
 
-**Screens:** `sign-in.tsx`, `register.tsx`
-
-**Services:** `auth.service.ts`
-```ts
-login(email, password): Promise<AuthResponse>
-register(name, email, password): Promise<AuthResponse>
-logout(): Promise<void>
-refresh(refreshToken): Promise<{ accessToken }>
-```
-
-**Store:** `auth.store.ts` (Zustand)
-```ts
-{ user, accessToken, refreshToken, setAuth, clearAuth }
-```
-
-**Token storage:** `expo-secure-store`
-```ts
-await SecureStore.setItemAsync('accessToken', token)
-await SecureStore.setItemAsync('refreshToken', token)
-```
-
-**Root layout gate:** reads stored tokens on app launch → auto-login or redirect to sign-in.
-
-**API interceptors** (same pattern as website `api.ts`):
-- Inject `Authorization: Bearer <token>` on every request
-- On 401: call refresh once, retry, then clear auth + redirect
+**Delivered:**
+- `src/store/auth.store.ts` — Zustand store persisted to **Expo SecureStore** via custom async storage adapter; `_hasHydrated` flag gates the auth redirect until rehydration is done
+- `src/services/auth.service.ts` — `login`, `register` (DONOR role fixed), `logout`, `refresh`; JWT payload decoded with `atob` (global in RN 0.76+) to extract `sub` + `role`
+- `src/lib/api.ts` — full axios instance with Bearer token injection interceptor + 401 auto-refresh-once-then-clear interceptor (mirrors website pattern)
+- `src/providers/QueryProvider.tsx` — stable `QueryClient` provider wrapping the app
+- `src/hooks/useAuth.ts` — `useLogin`, `useRegister`, `useLogout` TanStack Query mutations; `useLogout` uses `onSettled` so auth is always cleared even if server call fails
+- `app/_layout.tsx` — wrapped with `QueryProvider`
+- `app/index.tsx` — auth gate: waits for `_hasHydrated`, routes to `/(donor)/` or `/(auth)/sign-in` based on stored `accessToken`
+- `app/(auth)/sign-in.tsx` — full form: email + password, blur-triggered field validation, error banner with server error message, vivid blue background matching website auth screens
+- `app/(auth)/register.tsx` — full form: email + password + confirm, inline validation, success banner, auto-redirects to sign-in on success; donor role is hardcoded (app is donor-only)
 
 **Backend endpoints used:**
 - `POST /auth/login`
 - `POST /auth/register`
 - `POST /auth/refresh`
 - `POST /auth/logout`
-
-**Deliverable:** Full auth flow working.
 
 ---
 
