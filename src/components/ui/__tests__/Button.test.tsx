@@ -1,0 +1,46 @@
+import React from 'react';
+import { ActivityIndicator } from 'react-native';
+import { render, screen, fireEvent } from '@testing-library/react-native';
+import { Button } from '../Button';
+
+describe('Button', () => {
+  it('renders the label in uppercase', () => {
+    render(<Button label="Sign In" onPress={jest.fn()} />);
+    expect(screen.getByText('SIGN IN')).toBeTruthy();
+  });
+
+  it('calls onPress when pressed and not disabled', () => {
+    const onPress = jest.fn();
+    render(<Button label="Click me" onPress={onPress} />);
+    fireEvent.press(screen.getByText('CLICK ME'));
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onPress when disabled', () => {
+    const onPress = jest.fn();
+    render(<Button label="Disabled" onPress={onPress} disabled />);
+    // Pressing the label text propagates to the Pressable — which blocks it when disabled
+    fireEvent.press(screen.getByText('DISABLED'));
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('shows ActivityIndicator and hides label text when loading', () => {
+    const { UNSAFE_getByType } = render(<Button label="Loading" onPress={jest.fn()} loading />);
+    expect(screen.queryByText('LOADING')).toBeNull();
+    expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
+  });
+
+  it('does not call onPress when loading (disabled=true)', () => {
+    const onPress = jest.fn();
+    const { UNSAFE_getByType } = render(<Button label="Loading" onPress={onPress} loading />);
+    // Press the spinner — Pressable is disabled when loading
+    fireEvent.press(UNSAFE_getByType(ActivityIndicator));
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('renders outline variant without throwing', () => {
+    const { toJSON } = render(<Button label="Outline" onPress={jest.fn()} variant="outline" />);
+    expect(toJSON()).toBeTruthy();
+    expect(screen.getByText('OUTLINE')).toBeTruthy();
+  });
+});
