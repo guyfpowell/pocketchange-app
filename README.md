@@ -50,11 +50,8 @@ cp .env.example .env
 ```
 
 ```
-# Production backend
-EXPO_PUBLIC_API_URL=https://pocketchange-backend.onrender.com/api
-
-# Local development
-# EXPO_PUBLIC_API_URL=http://localhost:4000/api
+# Set to your backend URL
+EXPO_PUBLIC_API_URL=http://localhost:4000/api
 
 EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
 

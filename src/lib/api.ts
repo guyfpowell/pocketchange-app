@@ -4,6 +4,11 @@ import { useAuthStore } from '@/store/auth.store';
 const BASE_URL =
   process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:4000/api';
 
+// Reject insecure URLs in production — development builds may use localhost
+if (!__DEV__ && !BASE_URL.startsWith('https://')) {
+  throw new Error(`[api] Insecure API URL in production: ${BASE_URL}`);
+}
+
 const api = axios.create({ baseURL: BASE_URL });
 
 // ─── Request: inject Bearer token ────────────────────────────────────────────
@@ -16,6 +21,9 @@ api.interceptors.request.use((config) => {
 });
 
 // ─── Response: on 401 → refresh once → retry → clear session ─────────────────
+// Mutex: concurrent 401s share a single refresh promise to avoid multiple refresh calls
+let pendingRefresh: Promise<string> | null = null;
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -27,18 +35,24 @@ api.interceptors.response.use(
       try {
         const { refreshToken, user, setAuth } = useAuthStore.getState();
 
-        const { data } = await axios.post<{ accessToken: string }>(
-          `${BASE_URL}/auth/refresh`,
-          { refreshToken }
-        );
+        if (!pendingRefresh) {
+          pendingRefresh = axios
+            .post<{ accessToken: string }>(`${BASE_URL}/auth/refresh`, { refreshToken })
+            .then((res) => res.data.accessToken)
+            .finally(() => {
+              pendingRefresh = null;
+            });
+        }
+
+        const newAccessToken = await pendingRefresh;
 
         if (user) {
-          setAuth(user, data.accessToken, refreshToken ?? '');
+          setAuth(user, newAccessToken, refreshToken ?? '');
         }
 
         original.headers = {
           ...original.headers,
-          Authorization: `Bearer ${data.accessToken}`,
+          Authorization: `Bearer ${newAccessToken}`,
         };
 
         return api(original);

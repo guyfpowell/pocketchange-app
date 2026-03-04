@@ -16,23 +16,14 @@ export interface TokenResponse {
   refreshToken: string;
 }
 
-/** Decode JWT payload without external libs — works in RN 0.76+ (atob is global). */
-function decodeJwtPayload(token: string): { sub: string; role: string } {
-  const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-  return JSON.parse(atob(base64)) as { sub: string; role: string };
-}
-
 export const authService = {
   async login(input: LoginInput): Promise<{ user: AuthUser; tokens: TokenResponse }> {
-    const { data } = await api.post<TokenResponse>('/auth/login', input);
-    const payload = decodeJwtPayload(data.accessToken);
-    const user: AuthUser = {
-      id: payload.sub,
-      email: input.email,
-      role: payload.role as AuthUser['role'],
-      walletBalance: 0,
-    };
-    return { user, tokens: data };
+    const { data: tokens } = await api.post<TokenResponse>('/auth/login', input);
+    // Fetch authoritative user data — never trust unverified JWT payload client-side
+    const { data: user } = await api.get<AuthUser>('/users/me', {
+      headers: { Authorization: `Bearer ${tokens.accessToken}` },
+    });
+    return { user, tokens };
   },
 
   async register(input: RegisterInput): Promise<void> {

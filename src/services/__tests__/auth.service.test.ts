@@ -13,13 +13,6 @@ import api from '@/lib/api';
 
 const mockApi = api as jest.Mocked<typeof api>;
 
-/** Build a minimal JWT with a given payload for testing. */
-function makeJwt(payload: object): string {
-  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
-  const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
-  return `${header}.${body}.signature`;
-}
-
 describe('authService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -27,9 +20,11 @@ describe('authService', () => {
 
   describe('login', () => {
     it('calls POST /auth/login with credentials', async () => {
-      const token = makeJwt({ sub: 'user-1', role: 'DONOR' });
       mockApi.post.mockResolvedValueOnce({
-        data: { accessToken: token, refreshToken: 'refresh-abc' },
+        data: { accessToken: 'access-token', refreshToken: 'refresh-abc' },
+      });
+      mockApi.get.mockResolvedValueOnce({
+        data: { id: 'user-1', email: 'donor@example.com', role: 'DONOR', walletBalance: 0 },
       });
 
       await authService.login({ email: 'donor@example.com', password: 'pass123' });
@@ -40,19 +35,24 @@ describe('authService', () => {
       });
     });
 
-    it('parses the JWT and returns the correct user', async () => {
-      const token = makeJwt({ sub: 'user-42', role: 'DONOR' });
+    it('fetches /users/me with the access token and returns the correct user', async () => {
       mockApi.post.mockResolvedValueOnce({
-        data: { accessToken: token, refreshToken: 'refresh-abc' },
+        data: { accessToken: 'access-token', refreshToken: 'refresh-abc' },
+      });
+      mockApi.get.mockResolvedValueOnce({
+        data: { id: 'user-42', email: 'donor@example.com', role: 'DONOR', walletBalance: 500 },
       });
 
       const result = await authService.login({ email: 'donor@example.com', password: 'pass' });
 
+      expect(mockApi.get).toHaveBeenCalledWith('/users/me', {
+        headers: { Authorization: 'Bearer access-token' },
+      });
       expect(result.user.id).toBe('user-42');
       expect(result.user.role).toBe('DONOR');
       expect(result.user.email).toBe('donor@example.com');
-      expect(result.user.walletBalance).toBe(0);
-      expect(result.tokens.accessToken).toBe(token);
+      expect(result.user.walletBalance).toBe(500);
+      expect(result.tokens.accessToken).toBe('access-token');
       expect(result.tokens.refreshToken).toBe('refresh-abc');
     });
   });
