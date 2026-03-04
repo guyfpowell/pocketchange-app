@@ -40,22 +40,23 @@ describe('walletService', () => {
   });
 
   describe('getTransactions', () => {
-    it('calls GET /users/me/transactions with default pagination', async () => {
-      const mockData = { transactions: [], total: 0, page: 1, limit: 20 };
-      mockApi.get.mockResolvedValueOnce({ data: mockData });
+    it('calls GET /users/me/transactions and remaps data → transactions', async () => {
+      // Backend returns { data: [...] } — service remaps to { transactions: [...] }
+      mockApi.get.mockResolvedValueOnce({ data: { data: [], total: 0, page: 1, limit: 20 } });
 
       const result = await walletService.getTransactions();
 
       expect(mockApi.get).toHaveBeenCalledWith('/users/me/transactions?page=1&limit=20');
-      expect(result).toEqual(mockData);
+      expect(result).toEqual({ transactions: [], total: 0, page: 1, limit: 20 });
     });
 
     it('calls with custom page and limit', async () => {
-      mockApi.get.mockResolvedValueOnce({ data: { transactions: [], total: 0, page: 2, limit: 5 } });
+      mockApi.get.mockResolvedValueOnce({ data: { data: [], total: 0, page: 2, limit: 5 } });
 
-      await walletService.getTransactions(2, 5);
+      const result = await walletService.getTransactions(2, 5);
 
       expect(mockApi.get).toHaveBeenCalledWith('/users/me/transactions?page=2&limit=5');
+      expect(result.transactions).toEqual([]);
     });
   });
 });

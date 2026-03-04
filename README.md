@@ -16,8 +16,8 @@ PocketChange lets donors give directly to people experiencing homelessness. Reci
 
 | | |
 |---|---|
-| Framework | React Native + Expo 52 |
-| Routing | Expo Router 4 |
+| Framework | React Native + Expo 54 |
+| Routing | Expo Router 6 |
 | Language | TypeScript (strict) |
 | State | Zustand (auth) + TanStack Query (server data) |
 | HTTP | Axios with Bearer token + auto-refresh interceptors |
@@ -43,14 +43,19 @@ npm install
 
 ### Environment
 
-Copy `.env.example` to `.env.local` and set the API URL:
+Copy `.env.example` to `.env` and set the API URL:
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
 
 ```
-EXPO_PUBLIC_API_URL=http://localhost:4000/api
+# Production backend
+EXPO_PUBLIC_API_URL=https://pocketchange-backend.onrender.com/api
+
+# Local development
+# EXPO_PUBLIC_API_URL=http://localhost:4000/api
+
 EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
 
 # Feature flags — set to true only in a custom dev build
@@ -137,6 +142,17 @@ assets/
 | 9 | Profile & account management | ✅ Complete |
 
 See [plan-app.md](./plan-app.md) for the full implementation plan.
+
+---
+
+## Testing
+
+74 unit tests across 17 suites covering services, hooks, the auth store, and UI components.
+
+```bash
+npm test          # watch mode
+npm test -- --watchAll=false  # single run
+```
 
 ---
 

@@ -10,7 +10,7 @@ describe('ShortCodeInput', () => {
 
   it('renders the label and hint text', () => {
     render(<ShortCodeInput onSubmit={jest.fn()} />);
-    expect(screen.getByText('Enter 6-digit code')).toBeTruthy();
+    expect(screen.getByText('Enter 6-character code')).toBeTruthy();
     expect(screen.getByText("Found on the recipient's PocketChange badge.")).toBeTruthy();
   });
 
@@ -31,33 +31,37 @@ describe('ShortCodeInput', () => {
     expect(btn).toBeTruthy();
   });
 
-  it('calls onSubmit with raw digits when 6 digits entered and button pressed', () => {
+  it('calls onSubmit with raw chars when 6 chars entered and button pressed', () => {
     const onSubmit = jest.fn();
     render(<ShortCodeInput onSubmit={onSubmit} />);
 
-    // The hidden TextInput has a testID we can use to find it
     const input = screen.getByDisplayValue('');
-    // Type 6 digits
-    fireEvent.changeText(input, '123456');
+    fireEvent.changeText(input, 'AB1234');
 
     fireEvent.press(screen.getByText('FIND RECIPIENT'));
-    expect(onSubmit).toHaveBeenCalledWith('123456');
+    expect(onSubmit).toHaveBeenCalledWith('AB1234');
   });
 
-  it('formats 6 digits as XXX-XXX in the display', () => {
+  it('formats 6 chars as XXX-XXX in the display', () => {
     render(<ShortCodeInput onSubmit={jest.fn()} />);
     const input = screen.getByDisplayValue('');
-    fireEvent.changeText(input, '123456');
-    // Display value in the hidden input should be 123-456
-    expect(screen.getByDisplayValue('123-456')).toBeTruthy();
+    fireEvent.changeText(input, 'AB1234');
+    expect(screen.getByDisplayValue('AB1-234')).toBeTruthy();
   });
 
-  it('strips non-digit characters from input', () => {
+  it('uppercases input automatically', () => {
     render(<ShortCodeInput onSubmit={jest.fn()} />);
     const input = screen.getByDisplayValue('');
-    fireEvent.changeText(input, '12a3b4');
-    // Should only keep digits: 1234
-    expect(screen.getByDisplayValue('123-4')).toBeTruthy();
+    fireEvent.changeText(input, 'abc123');
+    expect(screen.getByDisplayValue('ABC-123')).toBeTruthy();
+  });
+
+  it('strips dashes from input (auto-inserted for display)', () => {
+    render(<ShortCodeInput onSubmit={jest.fn()} />);
+    const input = screen.getByDisplayValue('');
+    fireEvent.changeText(input, 'AB-123');
+    // Dash stripped, leaving AB123 → displayed as AB1-23
+    expect(screen.getByDisplayValue('AB1-23')).toBeTruthy();
   });
 
   it('shows loading state when isLoading is true', () => {

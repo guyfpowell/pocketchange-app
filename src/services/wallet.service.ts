@@ -30,9 +30,10 @@ export const walletService = {
   },
 
   async getTransactions(page = 1, limit = 20): Promise<TransactionsResponse> {
-    const { data } = await api.get<TransactionsResponse>(
+    const { data } = await api.get<{ data: Transaction[]; total: number; page: number; limit: number }>(
       `/users/me/transactions?page=${page}&limit=${limit}`
     );
-    return data;
+    // Backend returns { data: [...] } — remap to { transactions: [...] } for consistency
+    return { transactions: data.data, total: data.total, page: data.page, limit: data.limit };
   },
 };

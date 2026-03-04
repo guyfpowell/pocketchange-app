@@ -15,11 +15,11 @@ interface ShortCodeInputProps {
   error?: string | null;
 }
 
-/** Formats a raw 6-digit string as "XXX-XXX" for display. */
+/** Formats a raw 6-char alphanumeric string as "XXX-XXX" for display. */
 function format(raw: string): string {
-  const digits = raw.replace(/\D/g, '').slice(0, 6);
-  if (digits.length <= 3) return digits;
-  return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  const chars = raw.toUpperCase().slice(0, 6);
+  if (chars.length <= 3) return chars;
+  return `${chars.slice(0, 3)}-${chars.slice(3)}`;
 }
 
 export function ShortCodeInput({ onSubmit, isLoading = false, error }: ShortCodeInputProps) {
@@ -31,9 +31,9 @@ export function ShortCodeInput({ onSubmit, isLoading = false, error }: ShortCode
   const isComplete = raw.length === 6;
 
   function handleChange(text: string) {
-    // Strip everything except digits, cap at 6
-    const digits = text.replace(/\D/g, '').slice(0, 6);
-    setRaw(digits);
+    // Strip dashes (auto-inserted for display), uppercase, cap at 6
+    const chars = text.replace(/-/g, '').toUpperCase().slice(0, 6);
+    setRaw(chars);
   }
 
   function handleSubmit() {
@@ -43,7 +43,7 @@ export function ShortCodeInput({ onSubmit, isLoading = false, error }: ShortCode
 
   return (
     <View style={styles.wrapper}>
-      <Text style={styles.label}>Enter 6-digit code</Text>
+      <Text style={styles.label}>Enter 6-character code</Text>
       <Text style={styles.hint}>
         Found on the recipient's PocketChange badge.
       </Text>
@@ -70,8 +70,9 @@ export function ShortCodeInput({ onSubmit, isLoading = false, error }: ShortCode
         ref={inputRef}
         value={displayValue}
         onChangeText={handleChange}
-        keyboardType="number-pad"
-        maxLength={7} // 6 digits + 1 dash shown
+        keyboardType="default"
+        autoCapitalize="characters"
+        maxLength={7} // 6 chars + 1 dash shown
         style={styles.hiddenInput}
         caretHidden
         onSubmitEditing={handleSubmit}
